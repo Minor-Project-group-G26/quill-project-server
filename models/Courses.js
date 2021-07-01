@@ -37,10 +37,10 @@ const CoursesSchema = new Schema({
         type:String,
         require: true
     },
-    // publisher:{
-    //     type: String,
-    //     require: true
-    // },
+    image:{
+        type: String,
+        require: true
+    },
     duration:{
         no_of_weeks:{
             type: Number,

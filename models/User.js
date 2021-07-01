@@ -83,7 +83,7 @@ const UserSchema = new Schema({
     books:[BooksSchema],
     wishlist:{
         books:[BooksSchema],
-        couses:[EnrollSchema]
+        courses:[EnrollSchema]
     },
     phone:{
         type:String,
