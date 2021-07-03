@@ -6,7 +6,10 @@ const UserRouter = require('./users');
 const InstructorRouter = require('./instrector');
 const BooksRouter = require('./books');
 const AdminRouter = require('./admin')
-const CourseRouter = require('./courses')
+const CourseRouter = require('./courses');
+const Category = require('../../models/Category');
+
+
 
 Router.use(auth)
 /* GET home page. */
@@ -24,7 +27,10 @@ Router.use('/books', BooksRouter)
 Router.use('/admin', AdminRouter)
 Router.use('/courses', CourseRouter)
 // Router.use('/admin', AdminRouter)
-
+Router.get('/category_list',(req, res)=>{
+  const category = Category;
+  res.send({data:category})
+})
 Router.all('*', function(req, res, next) {
   res.status(404).send("Page not found");
 });
