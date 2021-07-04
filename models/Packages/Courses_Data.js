@@ -55,6 +55,10 @@ const Assignment = new Schema({
         type: Number,
         require:true
     },
+    question:{
+    type: String,
+    require: true,
+    },
     user_ans:[User_Answare]
 },{
     timestamps:true

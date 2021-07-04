@@ -5,7 +5,12 @@ const fs = require("fs");
 
 const Router = express.Router()
 
-Router.post('/:page', async(req, res,next)=>{
+Router.get('/list/:page', async(req, res,next)=>{
+    
+    const books = await Books.find({})
+    res.send({status:'sucess', msg:"Successfuly",data:books.splice(req.params.page*5, 5)})
+})
+Router.post('/list/:page', async(req, res,next)=>{
     const {category, name, author} = req.body
     let findData = {} 
     if(category)
@@ -15,7 +20,7 @@ Router.post('/:page', async(req, res,next)=>{
     if(author)
     findData = {...findData, publisher:{publisher_name:{ $regex:author}}}
     
-    const books = await Books.find(find)
+    const books = await Books.find(findData)
     res.send({status:'sucess', msg:"Successfuly",data:books.splice(req.params.page*5, 5)})
 })
 

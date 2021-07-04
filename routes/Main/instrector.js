@@ -57,8 +57,10 @@ const uploadBook = multer({
 Router.post('/new/book',uploadBook.any(),async(req, res)=>{
     console.log(req.headers)
    try {
-    const {desc, title, price, tags,author} = req.body;
+    const {desc, title, price, tags,author, category} = req.body;
     console.log(req.headers._id)
+    if(!title || !price|| !desc|| !tags || !category)
+    return res.send({status:"failed", msg:"failed to Created"})     
     const user = await User.findById(req.headers._id)
     if(!user){
       console.log(user)
@@ -78,6 +80,7 @@ Router.post('/new/book',uploadBook.any(),async(req, res)=>{
     newBook.price = price;
     newBook.tags = JSON.parse(tags);
     newBook.description = desc;
+    newBook.category = category;
     newBook.book_file = req.files[0].filename
     newBook.book_image = req.files[1].filename
 
@@ -129,39 +132,50 @@ const uploadCourse= multer({
 
 
 Router.post('/new/course',  uploadCourse.single('thumbnail'), async(req, res)=>{
-  const {title, price, desc, tags, level, category} = req.body
   const {filename, path} = req.file;
-  const newCourse = new Courses();
-  const user = await User.findById(req.headers._id);
-  const instructor = await Instrector.findById(req.headers._instructor_id);
-  if(!instructor){
-    fs.unlink(path)
-    return res.send({status:"failed", msg:"instructor not found"})
-  }
-  newCourse.title = title;
-  newCourse.price = price;
-  newCourse.description = desc;
-  newCourse.tags = JSON.parse(tags);
-  newCourse.level = level;
-  newCourse.category = category;
-  newCourse.instructor={
-    instructor_name:user.name,
-    instructor_id:user.instructor_id,
-    instructor_profession:user.occupation
-  }
-  if(newCourse.save()){
-      instructor.courses.push({
-        course_title: newCourse.title,
-        course_id: newCourse._id
-      })
-    if(instructor.save())
-    return res.send({status:"success", msg:"Successfully Created"})
+  if(!req.file)
+  return res.send({status:"failed", msg:"Missing Thumbnail Image "})      
+
+  try {
+    const {title, price, desc, tags, level, category} = req.body
+    if(!title || !price|| !desc|| !tags|| !level|| !category)
+      return res.send({status:"failed", msg:"failed to Created"})      
+    const newCourse = new Courses();
+    const user = await User.findById(req.headers._id);
+    const instructor = await Instrector.findById(req.headers._instructor_id);
+    if(!instructor){
+      fs.unlink(path)
+      return res.send({status:"failed", msg:"instructor not found"})
+    }
+    newCourse.title = title;
+    newCourse.price = price;
+    newCourse.description = desc;
+    newCourse.tags = JSON.parse(tags);
+    newCourse.level = level;
+    newCourse.category = category;
+    newCourse.instructor={
+      instructor_name:user.name,
+      instructor_id:user.instructor_id,
+      instructor_profession:user.occupation
+    }
+    if(newCourse.save()){
+        instructor.courses.push({
+          course_title: newCourse.title,
+          course_id: newCourse._id
+        })
+      if(instructor.save())
+      return res.send({status:"success", msg:"Successfully Created"})
+      else{
+        fs.unlink(path)
+        return res.send({status:"failed", msg:"failed to Created"})
+      }
+    }
     else{
       fs.unlink(path)
-      return res.send({status:"failed", msg:"failed to Created"})
+      return res.send({status:"failed", msg:"failed to Created"})      
     }
-  }
-  else{
+    
+  } catch (error) {
     fs.unlink(path)
     return res.send({status:"failed", msg:"failed to Created"})      
   }
@@ -189,11 +203,14 @@ Router.put('/course/:id/create_week' , async(req, res, next)=>{
   if(!course){
     return res.send({status:"failed", msg:"failed to Created"})      
   }
+  if(course.instructor.instructor_id !== req.headers._instructor_id){
+    return res.send({status:"failed", msg:"Worng Course ID"})      
+  } 
   course.data.push({
     week_no: week_no,
-    week_topic 
+    week_topic : week_topic
   });
-  if(courses.save()){
+  if(course.save()){
     return res.send({status:"success", msg:"Successfully Week Created"})
   }else{
     return res.send({status:"failed", msg:"failed to Created"})      
@@ -201,21 +218,53 @@ Router.put('/course/:id/create_week' , async(req, res, next)=>{
 })
 
 Router.put('/course/:id/:week',uploadCourseVideo.single('file') , async(req, res, next)=>{
-  const course = await Courses.findById(req.params.id);
-  if(!course){
+  try {
+    const course = await Courses.findById(req.params.id);
+    if(!course){
+      fs.unlink(req.file.path)
+      return res.send({status:"failed", msg:"failed to Created"})      
+    }
+    course.data[req.params.week].week_data.push({
+      title: req.body.title,
+      file: req.file.filename,
+      type:req.body.type
+    });
+    if(course.save()){
+      return res.send({status:"success", msg:"Successfully Added"})
+    }else{
+      fs.unlink(req.file.path)
+      return res.send({status:"failed", msg:"failed to Created"})      
+    }
+  } catch (error) {
     fs.unlink(req.file.path)
-    return res.send({status:"failed", msg:"failed to Created"})      
+    return res.send({status:"failed", msg:"failed to Created"})   
   }
-  course.data[req.params.week].week_data.push({
-    title: req.body.title,
-    file: req.file.filename,
-    type:req.body.type
-  });
-  if(courses.save()){
-    return res.send({status:"success", msg:"Successfully Added"})
-  }else{
+})
+
+Router.put('/course/:id/:week/assignment',uploadCourseVideo.single('qus_file') , async(req, res, next)=>{
+  try {
+    const course = await Courses.findById(req.params.id);
+    if(!course){
+      fs.unlink(req.file.path)
+      return res.send({status:"failed", msg:"failed to Created"})      
+    }
+  
+    course.data[req.params.week].assignment.push({
+      title: req.body.title,
+      question: req.file.filename,
+      answare: req.body.answae,
+      week: req.params.week,
+      type_assignment: req.body.type_assignment
+    });
+    if(course.save()){
+      return res.send({status:"success", msg:"Successfully Added"})
+    }else{
+      fs.unlink(req.file.path)
+      return res.send({status:"failed", msg:"failed to Created"})      
+    }
+  } catch (error) {
     fs.unlink(req.file.path)
-    return res.send({status:"failed", msg:"failed to Created"})      
+    return res.send({status:"failed", msg:"failed to Created"})   
   }
 })
 

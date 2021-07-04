@@ -1,6 +1,4 @@
 const Router = require('express').Router()
-const passport = require('passport');
-const { auth } = require('../../middleware/tokenVerify');
 const User = require('../../models/User')
 
 
@@ -45,23 +43,21 @@ Router.post('/sign_in', async(req, res, next)=>{
 
     await User.findOne({email: email}, (err, user)=>{
         // res.send(err)
-        if(err)  return res.status(500).send(err);
+        if(err)  return res.status(401).send(err);
          
         if (user == null) {
-            return res.status(500).send({error: "no user found"});
+            return res.status(401).send({error: "no user found"});
         }
         //    res.json(err);
         let existUser = User(user);
         if(existUser.comparePassword(password,existUser.password))
-            res.json({token:existUser.createToken(existUser._id, "1234567890"), username:existUser.username })
+            res.send({token:existUser.createToken(existUser._id, "1234567890"), username:existUser.username })
         else
             res.status(401).send("wrong password")
         
     }) 
 });
-Router.post('/verify', auth,(req, res, next)=>{
-    res.send(req.headers)
-});
+
 
 
 

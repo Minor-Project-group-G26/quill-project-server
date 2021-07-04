@@ -11,7 +11,6 @@ const Course_InstructorSchema = new Schema({
    instructor_id:{
        type:Object,
        require: true,
-       unique: true
    },
    instructor_profession:{
     type: String,

@@ -3,17 +3,34 @@ const Courses = require('../../models/Courses');
 const User = require('../../models/User');
 const Router = express.Router()
 
-Router.post('/:page', (req, res)=>{
-    
-})
 
-Router.get('/:id', (req, res)=>{
-    Courses.findById(req.params.id, (err, course)=>{
+Router.get('/:id', async (req, res)=>{
+    await Courses.findById(req.params.id, (err, course)=>{
         console.log(err)
+        console.log(course)
         if(err) return res.send({status:'fail', msg:"No Course Found"})
         if(!course) return res.send({status:'fail', msg:"No Course Found"})        
         return res.send({status: 'success', msg: "Successfully Data found", data: course})
     })
+})
+Router.get('/list/:page', async(req, res)=>{
+    
+    const courses = await Courses.find({})
+    return res.send({status:'sucess', msg:"Successfuly",data:courses.splice(req.params.page*5, 5)})
+})
+
+Router.post('/list/:page', async(req, res)=>{
+    const {category, name, author} = req.body
+    let findData = {} 
+    if(category)
+    findData = {category: category}
+    if(name)
+    findData = {...findData,name:{ $regex:title}}
+    if(author)
+    findData = {...findData, publisher:{publisher_name:{ $regex:author}}}
+    
+    const courses = await Courses.find(findData)
+    return res.send({status:'sucess', msg:"Successfuly",data:courses.splice(req.params.page*5, 5)})
 })
 
 Router.get('/:id/:week', (req, res)=>{
@@ -25,14 +42,14 @@ Router.get('/:id/:week', (req, res)=>{
     })
 })
 
-Router.get('/:id/:week/:data_id', (req, res)=>{
-    Courses.findById(req.params.id, (err, course)=>{
-        console.log(err)
-        if(err) return res.send({status:'fail', msg:"No Course Found"})
-        if(!course) return res.send({status:'fail', msg:"No Course Found"})        
-        return res.send({status: 'success', msg: "Successfully Data found", data: course.data[req.params.week][req.params.data_id]})
-    })
-})
+// Router.get('/:id/:week/:data_id', async (req, res)=>{
+//     await Courses.findById(req.params.id, (err, course)=>{
+//         console.log(err)
+//         if(err) return res.send({status:'fail', msg:"No Course Found"})
+//         if(!course) return res.send({status:'fail', msg:"No Course Found"})        
+//         return res.send({status: 'success', msg: "Successfully Data found", data: course.data[req.params.week].data})
+//     })
+// })
 
 Router.post('/buy/:id', async(req, res, next)=>{
     const course = await Courses.findById(req.params.id);
@@ -64,6 +81,39 @@ Router.post('/buy/:id', async(req, res, next)=>{
     return res.send({status: 'failed', msg:'Something went wrong'})
 
 })
+
+
+// Router.put('/:id/:week/assignment', async(req, res)=>{
+//     const course = await Courses.findById(req.params.id)
+
+//     if(!course)
+//     return res.send({status: 'failed', msg:'Course Not Found'})
+//     // user_ans
+//     // user_id:{
+//     //     type:Schema.Types.ObjectId,
+//     //     require:true
+//     // },
+//     // answare:{
+//     //     type:String,
+//     //     require: true
+//     // },
+//     // score:{
+//     //     type:Number,
+//     //     require:true
+//     // },
+//     // status:{
+//     //     type:String,
+//     //     require: true
+//     // }
+//     let score = course.data[req.params.week].assignment[0].answare.split('.').map
+//     course.data[req.params.week].assignment[0].user_ans.push({
+//         user_id: req.headers._id,
+//         answare: req.body.answare,
+
+//     })
+    
+// })
+
 
 Router.all('*', function(req, res, next) {
     res.status(404).send("Page not found");

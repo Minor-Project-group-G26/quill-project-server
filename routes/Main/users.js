@@ -152,7 +152,7 @@ Router.get('/wishlist/data_list', async (req, res, next) => {
 Router.put('/new_instructor', async (req, res, next) => {
   await Instrector.findOne({ user_id: req.headers._id }, async (err, user) => {
     if (user)
-      return res.end("user already exist");
+      return res.send({status:'failed',msg:"Instructor already exist"});
 
     let newInstructor = new Instrector()
     newInstructor.user_id = req.headers._id;
@@ -166,14 +166,12 @@ Router.put('/new_instructor', async (req, res, next) => {
       await User.findByIdAndUpdate(req.headers._id, { $set: { instructor_id: inst._id, instructor: true } }, (err, user) => {
         if (err)
           return res.send({ error: err })
-        res.send({ status: "success", user: user })
+        res.send({ status: "success", msg: "Succesfully Request Sended" })
       })
 
     });
 
   })
-
-
 });
 
 

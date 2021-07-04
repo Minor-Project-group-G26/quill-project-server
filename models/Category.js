@@ -13,7 +13,7 @@ module.exports =[
     },
     {
         id:4,
-        name: 'Maths and Logics'
+        name: 'Marketing'
     },
     {
         id:5,

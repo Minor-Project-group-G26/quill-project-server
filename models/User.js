@@ -105,7 +105,7 @@ UserSchema.methods.comparePassword = (password, hash)=> bcrypt.compareSync(passw
 UserSchema.methods.createToken = (id, secretKey)=> jwt.sign({
     user_id: id,
     time: Date.now()
-  }, secretKey, { expiresIn: 60*60*24*7 });
+  }, secretKey);
 UserSchema.methods.verifyToken = (token, secretKey)=> jwt.verify(token, secretKey, (err, data)=>{
     if(err) return {err: err};
     return {data: data};
